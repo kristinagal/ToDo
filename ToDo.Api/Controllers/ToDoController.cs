@@ -9,6 +9,7 @@ namespace ToDo.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public class ToDoController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -123,9 +124,7 @@ namespace ToDo.Api.Controllers
         public async Task<IActionResult> PostToDoItem(ToDoForCreateDto toDoItem)
         {
             if (_context.ToDos == null)
-            {
                 return StatusCode(500, $"Server error - database issue");
-            }
 
             var toDoEntity = new ToDoItem()
             {
@@ -148,12 +147,13 @@ namespace ToDo.Api.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteToDoItem(int id)
         {
             if (_context.ToDos == null)
-            {
                 return StatusCode(500, $"Server error - database issue");
-            }
+            
             var toDoItem = await _context.ToDos.FindAsync(id);
             if (toDoItem == null)
             {
