@@ -23,12 +23,13 @@ namespace ToDo.Api.Controllers
         /// <param name="username"></param>
         /// <param name="password"></param>
         /// <returns></returns>
+        /// <response code="200">User data</response>
         /// <response code="400">Model validation error</response>
         /// <response code="500">System error</response>
         [HttpGet]
-        [Produces(MediaTypeNames.Text.Plain)]
+        [Produces(MediaTypeNames.Application.Json)]
         [Consumes(MediaTypeNames.Application.Json)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<UserResponse>> Login(string username, string password)
         {
@@ -41,7 +42,7 @@ namespace ToDo.Api.Controllers
 
             if (await _userManager.CheckPasswordAsync(user, password))
             {
-                return new UserResponse(user);
+                return Ok(new UserResponse(user));
             }
             else
             {
