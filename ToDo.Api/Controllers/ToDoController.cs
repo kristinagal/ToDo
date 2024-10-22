@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Mime;
 using ToDo.Api.Data;
 using ToDo.Api.DTOs;
 using ToDo.Api.Models;
@@ -22,35 +23,38 @@ namespace ToDo.Api.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ToDoDto>>> GetToDos()
+        [Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(typeof(IEnumerable<ToDoDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetToDos()
         {
             if (_context.ToDos == null)
             {
                 return NotFound(new ErrorResponse("No to do items found"));
             }
-            return await _context.ToDos.Select(t=> new ToDoDto(t)).ToListAsync();
+            var result = await _context.ToDos.Select(t=> new ToDoDto(t)).ToListAsync();
+            return Ok(result);
         }
 
         /// <summary>
         /// GET single todo item by id
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="id">id of single todo item</param>
         /// <returns></returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult<ToDoDto>> GetToDoItem(int id)
+        [Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(typeof(ToDoDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetToDoItem(int id)
         {
             if (_context.ToDos == null)
-            {
                 return NotFound(new ErrorResponse("No to do items found"));
-            }
+            
             var toDoItem = await _context.ToDos.FindAsync(id);
 
-            if (toDoItem == null)
-            {
-                return NotFound(new ErrorResponse($"No to do items found by id {id}"));
-            }
+            return toDoItem == null ? NotFound(new ErrorResponse($"No to do items found by id {id}")) : Ok(new ToDoDto(toDoItem));
 
-            return new ToDoDto(toDoItem);
+          
         }
 
         /// <summary>
@@ -60,6 +64,11 @@ namespace ToDo.Api.Controllers
         /// <param name="toDoItem"></param>
         /// <returns></returns>
         [HttpPut("{id}")]
+        [Produces(MediaTypeNames.Application.Json)]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PutToDoItem(int id, ToDoDto toDoItem)
         {
             if (id != toDoItem.Id)
@@ -106,7 +115,12 @@ namespace ToDo.Api.Controllers
         /// <param name="toDoItem"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<ActionResult<ToDoDto>> PostToDoItem(ToDoForCreateDto toDoItem)
+        [Produces(MediaTypeNames.Application.Json)]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(typeof(ToDoDto),StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> PostToDoItem(ToDoForCreateDto toDoItem)
         {
             if (_context.ToDos == null)
             {
